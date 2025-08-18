@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chord Chart with Search</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+    #controls {
+      margin-bottom: 20px;
+    }
+    input, select {
+      margin-right: 10px;
+      padding: 4px;
+    }
+    #chord-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .chord-card {
+      background-color: #fff;
+      border-radius: 6px;
+      border: 1px solid #444;
+      padding: 8px;
+      width: 130px;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.2);
+    }
+    .chord-card.major { background-color: #cce5ff; }
+    .chord-card.minor { background-color: #f8d7da; }
+    .chord-card.diminished { background-color: #e2e3e5; }
+    .chord-card.augmented { background-color: #d4edda; }
+    .chord-card.suspended { background-color: #fff3cd; }
+    .chord-card.add { background-color: #ffe0b3; }
+    .chord-card strong { display: block; font-size: 1.1em; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+<h1>Chord Chart</h1>
+
+<div id="controls">
+  <label for="rootFilter">Root:</label>
+  <select id="rootFilter"><option value="All">All</option></select>
+
+  <label for="typeFilter">Chord Type:</label>
+  <select id="typeFilter">
+    <option value="All">All</option>
+    <option value="Major">Major</option>
+    <option value="Minor">Minor</option>
+    <option value="Diminished">Diminished</option>
+    <option value="Augmented">Augmented</option>
+    <option value="Suspended">Suspended</option>
+    <option value="Add">Add</option>
+  </select>
+
+  <label for="searchBox">Search:</label>
+  <input type="text" id="searchBox" placeholder="Type chord name...">
+</div>
+
+<div id="chord-grid"></div>
+
+<script>
+  const NOTES = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+  const NOTE_NAMES = {0:["C"],1:["C#","Db"],2:["D"],3:["D#","Eb"],4:["E"],5:["F"],6:["F#","Gb"],7:["G"],8:["G#","Ab"],9:["A"],10:["A#","Bb"],11:["B"]};
+  const BASE_CHORDS = {"Major":[0,4,7],"Minor":[0,3,7],"Diminished":[0,3,6],"Augmented":[0,4,8]};
+  const EXTENSIONS = {"7":[0,10],"maj7":[0,11],"9":[0,10,14],"maj9":[0,11,14],"11":[0,10,14,17],"13":[0,10,14,17,21]};
+  const SUSPENDED_CHORDS = {"sus2":[0,2,7],"sus4":[0,5,7]};
+  const ADD_CHORDS = {"add2":[0,2,4,7],"add4":[0,4,5,7]};
+
+  function selectNoteName(noteArray, chordName){
+    if(chordName.includes('b') || chordName==="F" || chordName.startsWith("Db") || chordName.startsWith("Eb") || chordName.startsWith("Gb") || chordName.startsWith("Ab") || chordName.startsWith("Bb")){
+      return noteArray.length===2 ? noteArray[1] : noteArray[0];
+    } else return noteArray[0];
+  }
+
+  function buildChord(root, intervals){
+    const rootIndex = NOTES.indexOf(root);
+    return intervals.map(interval => {
+      const noteIndex = (rootIndex + interval) % 12;
+      return selectNoteName(NOTE_NAMES[noteIndex], root);
+    });
+  }
+
+  function getChordSuffix(baseType, extType){
+    switch(baseType){
+      case "Major": return extType==="7"?"7":extType==="maj7"?"maj7":extType==="9"?"9":extType==="maj9"?"maj9":extType==="11"?"11":extType==="13"?"13":extType==="sus2"?"sus2":extType==="sus4"?"sus4":extType==="add2"?"add2":extType==="add4"?"add4":"";
+      case "Minor": return extType==="7"?"m7":extType==="9"?"m9":extType==="11"?"m11":extType==="13"?"m13":extType==="sus2"?"m sus2":extType==="sus4"?"m sus4":extType==="add2"?"m add2":extType==="add4"?"m add4":"m";
+      case "Diminished": return extType==="7"?"dim7":extType==="9"?"dim9":extType==="11"?"dim11":extType==="13"?"dim13":extType==="sus2"?"dim sus2":extType==="sus4"?"dim sus4":extType==="add2"?"dim add2":extType==="add4"?"dim add4":"dim";
+      case "Augmented": return extType==="7"?"aug7":extType==="9"?"aug9":extType==="11"?"aug11":extType==="13"?"aug13":extType==="sus2"?"aug sus2":extType==="sus4"?"aug sus4":extType==="add2"?"aug add2":extType==="add4"?"aug add4":"aug";
+      default: return baseType;
+    }
+  }
+
+  function generateChordLibrary(){
+    const chords=[];
+    for(const root of NOTES){
+      for(const baseType in BASE_CHORDS){
+        const baseIntervals = BASE_CHORDS[baseType];
+        chords.push({name: root+getChordSuffix(baseType,""), root: root, category: baseType, notes: buildChord(root, baseIntervals)});
+        const extensionTypes = ["7","9","11","13"];
+        for(const ext of extensionTypes){
+          const extIntervals = baseIntervals.concat(EXTENSIONS[ext].slice(1));
+          chords.push({name: root+getChordSuffix(baseType,ext), root: root, category: baseType, notes: buildChord(root, extIntervals)});
+        }
+        for(const susType in SUSPENDED_CHORDS){
+          chords.push({name: root+getChordSuffix(baseType,susType), root: root, category:"Suspended", notes: buildChord(root,SUSPENDED_CHORDS[susType])});
+        }
+        for(const addType in ADD_CHORDS){
+          chords.push({name: root+getChordSuffix(baseType,addType), root: root, category:"Add", notes: buildChord(root,ADD_CHORDS[addType])});
+        }
+      }
+    }
+    return chords;
+  }
+
+  const chordLibrary = generateChordLibrary();
+
+  function displayChordGrid(chords){
+    const container = document.getElementById("chord-grid");
+    container.innerHTML = "";
+    chords.forEach(chord=>{
+      const card=document.createElement("div");
+      card.className="chord-card";
+      const cat=chord.category.toLowerCase();
+      if(cat.includes("major")) card.classList.add("major");
+      else if(cat.includes("minor")) card.classList.add("minor");
+      else if(cat.includes("diminished")) card.classList.add("diminished");
+      else if(cat.includes("aug")) card.classList.add("augmented");
+      else if(cat.includes("suspended")) card.classList.add("suspended");
+      else if(cat.includes("add")) card.classList.add("add");
+      card.innerHTML=`<strong>${chord.name}</strong>${chord.notes.join(", ")}`;
+      container.appendChild(card);
+    });
+  }
+
+  // Populate root filter
+  const rootSelect=document.getElementById("rootFilter");
+  NOTES.forEach(n=>{const option=document.createElement("option");option.value=n;option.innerText=n;rootSelect.appendChild(option);});
+
+  const typeSelect=document.getElementById("typeFilter");
+  const searchBox=document.getElementById("searchBox");
+
+  function filterChords(){
+    const rootVal=rootSelect.value;
+    const typeVal=typeSelect.value.toLowerCase();
+    const searchVal=searchBox.value.toLowerCase();
+    const filtered=chordLibrary.filter(chord=>{
+      return (rootVal==="All"||chord.root===rootVal)
+        && (typeVal==="all"||chord.category.toLowerCase().includes(typeVal))
+        && (searchVal===""||chord.name.toLowerCase().includes(searchVal));
+    });
+    displayChordGrid(filtered);
+  }
+
+  rootSelect.addEventListener("change",filterChords);
+  typeSelect.addEventListener("change",filterChords);
+  searchBox.addEventListener("input",filterChords);
+
+  displayChordGrid(chordLibrary);
+</script>
+
+</body>
+</html>
