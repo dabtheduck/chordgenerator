@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Chord Chart with Search</title>
+  <title>Chord Chart with Filters</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -59,6 +59,9 @@
 
   <label for="searchBox">Search:</label>
   <input type="text" id="searchBox" placeholder="Type chord name...">
+
+  <label for="noteFilter">Notes:</label>
+  <input type="text" id="noteFilter" placeholder="e.g., C,E,G">
 </div>
 
 <div id="chord-grid"></div>
@@ -143,23 +146,32 @@
 
   const typeSelect=document.getElementById("typeFilter");
   const searchBox=document.getElementById("searchBox");
+  const noteFilter=document.getElementById("noteFilter");
 
   function filterChords(){
     const rootVal=rootSelect.value;
     const typeVal=typeSelect.value.toLowerCase();
     const searchVal=searchBox.value.toLowerCase();
+    const noteVal=noteFilter.value.toUpperCase().replace(/\s/g,'');
+    const notesToCheck = noteVal.split(",").filter(n => n);
+
     const filtered=chordLibrary.filter(chord=>{
+      const hasNotes = notesToCheck.every(n => chord.notes.includes(n));
       return (rootVal==="All"||chord.root===rootVal)
         && (typeVal==="all"||chord.category.toLowerCase().includes(typeVal))
-        && (searchVal===""||chord.name.toLowerCase().includes(searchVal));
+        && (searchVal===""||chord.name.toLowerCase().includes(searchVal))
+        && (notesToCheck.length===0 || hasNotes);
     });
+
     displayChordGrid(filtered);
   }
 
-  rootSelect.addEventListener("change",filterChords);
-  typeSelect.addEventListener("change",filterChords);
-  searchBox.addEventListener("input",filterChords);
+  rootSelect.addEventListener("change", filterChords);
+  typeSelect.addEventListener("change", filterChords);
+  searchBox.addEventListener("input", filterChords);
+  noteFilter.addEventListener("input", filterChords);
 
+  // Show all chords initially
   displayChordGrid(chordLibrary);
 </script>
 
