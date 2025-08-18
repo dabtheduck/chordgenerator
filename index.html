@@ -61,7 +61,7 @@
   <input type="text" id="searchBox" placeholder="Type chord name...">
 
   <label for="noteFilter">Notes:</label>
-  <input type="text" id="noteFilter" placeholder="e.g., C,E,G">
+  <input type="text" id="noteFilter" placeholder="e.g., C,E,G or F#,Bb">
 </div>
 
 <div id="chord-grid"></div>
@@ -149,18 +149,20 @@
   const noteFilter=document.getElementById("noteFilter");
 
   function filterChords(){
-    const rootVal=rootSelect.value;
-    const typeVal=typeSelect.value.toLowerCase();
-    const searchVal=searchBox.value.toLowerCase();
-    const noteVal=noteFilter.value.toUpperCase().replace(/\s/g,'');
-    const notesToCheck = noteVal.split(",").filter(n => n);
+    const rootVal = rootSelect.value;
+    const typeVal = typeSelect.value.toLowerCase();
+    const searchVal = searchBox.value.toLowerCase();
+    
+    // Clean input, allow # and b
+    const noteVal = noteFilter.value.toUpperCase().replace(/\s/g,''); 
+    const notesToCheck = noteVal.split(",").filter(n => n.match(/^[A-G](#|B)?$/i));
 
-    const filtered=chordLibrary.filter(chord=>{
+    const filtered = chordLibrary.filter(chord => {
       const hasNotes = notesToCheck.every(n => chord.notes.includes(n));
-      return (rootVal==="All"||chord.root===rootVal)
-        && (typeVal==="all"||chord.category.toLowerCase().includes(typeVal))
-        && (searchVal===""||chord.name.toLowerCase().includes(searchVal))
-        && (notesToCheck.length===0 || hasNotes);
+      return (rootVal === "All" || chord.root === rootVal)
+        && (typeVal === "all" || chord.category.toLowerCase().includes(typeVal))
+        && (searchVal === "" || chord.name.toLowerCase().includes(searchVal))
+        && (notesToCheck.length === 0 || hasNotes);
     });
 
     displayChordGrid(filtered);
