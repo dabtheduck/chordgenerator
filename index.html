@@ -68,7 +68,10 @@
 
 <script>
   const NOTES = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
-  const NOTE_NAMES = {0:["C"],1:["C#","Db"],2:["D"],3:["D#","Eb"],4:["E"],5:["F"],6:["F#","Gb"],7:["G"],8:["G#","Ab"],9:["A"],10:["A#","Bb"],11:["B"]};
+  const NOTE_NAMES = {
+    0:["C"],1:["C#","Db"],2:["D"],3:["D#","Eb"],4:["E"],5:["F"],
+    6:["F#","Gb"],7:["G"],8:["G#","Ab"],9:["A"],10:["A#","Bb"],11:["B"]
+  };
   const BASE_CHORDS = {"Major":[0,4,7],"Minor":[0,3,7],"Diminished":[0,3,6],"Augmented":[0,4,8]};
   const EXTENSIONS = {"7":[0,10],"maj7":[0,11],"9":[0,10,14],"maj9":[0,11,14],"11":[0,10,14,17],"13":[0,10,14,17,21]};
   const SUSPENDED_CHORDS = {"sus2":[0,2,7],"sus4":[0,5,7]};
@@ -96,69 +99,70 @@
       case "Augmented": return extType==="7"?"aug7":extType==="9"?"aug9":extType==="11"?"aug11":extType==="13"?"aug13":extType==="sus2"?"aug sus2":extType==="sus4"?"aug sus4":extType==="add2"?"aug add2":extType==="add4"?"aug add4":"aug";
       default: return baseType;
     }
-function buildSuspendedChord(baseIntervals, susType) {
-  let intervals = [...baseIntervals];
-  intervals = intervals.filter(i => i !== 3 && i !== 4);
-
-  if (susType === "sus2") {
-    intervals.push(2);
-  } else if (susType === "sus4") {
-    intervals.push(5);
   }
 
-  return intervals.sort((a, b) => a - b);
-}
+  function buildSuspendedChord(baseIntervals, susType) {
+    let intervals = [...baseIntervals];
+    intervals = intervals.filter(i => i !== 3 && i !== 4);
 
-function generateChordLibrary(){
-  const chords=[];
-  for(const root of NOTES){
-    for(const baseType in BASE_CHORDS){
-      const baseIntervals = BASE_CHORDS[baseType];
+    if (susType === "sus2") {
+      intervals.push(2);
+    } else if (susType === "sus4") {
+      intervals.push(5);
+    }
 
-      // Base chord
-      chords.push({
-        name: root+getChordSuffix(baseType,""),
-        root: root,
-        category: baseType,
-        notes: buildChord(root, baseIntervals)
-      });
+    return intervals.sort((a, b) => a - b);
+  }
 
-      // Extensions
-      const extensionTypes = ["7","9","11","13"];
-      for(const ext of extensionTypes){
-        const extIntervals = baseIntervals.concat(EXTENSIONS[ext].slice(1));
+  function generateChordLibrary(){
+    const chords=[];
+    for(const root of NOTES){
+      for(const baseType in BASE_CHORDS){
+        const baseIntervals = BASE_CHORDS[baseType];
+
+        // Base chord
         chords.push({
-          name: root+getChordSuffix(baseType,ext),
+          name: root+getChordSuffix(baseType,""),
           root: root,
           category: baseType,
-          notes: buildChord(root, extIntervals)
+          notes: buildChord(root, baseIntervals)
         });
-      }
 
-      // Suspended
-      for(const susType in SUSPENDED_CHORDS){
-        chords.push({
-          name: root+getChordSuffix(baseType,susType),
-          root: root,
-          category:"Suspended",
-          notes: buildChord(root,SUSPENDED_CHORDS[susType])
-        });
-      }
+        // Extensions
+        const extensionTypes = ["7","9","11","13"];
+        for(const ext of extensionTypes){
+          const extIntervals = baseIntervals.concat(EXTENSIONS[ext].slice(1));
+          chords.push({
+            name: root+getChordSuffix(baseType,ext),
+            root: root,
+            category: baseType,
+            notes: buildChord(root, extIntervals)
+          });
+        }
 
-      // Add chords
-      for(const addType in ADD_CHORDS){
-        chords.push({
-          name: root+getChordSuffix(baseType,addType),
-          root: root,
-          category:"Add",
-          notes: buildChord(root,ADD_CHORDS[addType])
-        });
+        // Suspended
+        for(const susType in SUSPENDED_CHORDS){
+          chords.push({
+            name: root+getChordSuffix(baseType,susType),
+            root: root,
+            category:"Suspended",
+            notes: buildChord(root,SUSPENDED_CHORDS[susType])
+          });
+        }
+
+        // Add chords
+        for(const addType in ADD_CHORDS){
+          chords.push({
+            name: root+getChordSuffix(baseType,addType),
+            root: root,
+            category:"Add",
+            notes: buildChord(root,ADD_CHORDS[addType])
+          });
+        }
       }
     }
+    return chords;
   }
-  return chords;
-}
-
 
   const chordLibrary = generateChordLibrary();
 
@@ -182,7 +186,12 @@ function generateChordLibrary(){
 
   // Populate root filter
   const rootSelect=document.getElementById("rootFilter");
-  NOTES.forEach(n=>{const option=document.createElement("option");option.value=n;option.innerText=n;rootSelect.appendChild(option);});
+  NOTES.forEach(n=>{
+    const option=document.createElement("option");
+    option.value=n;
+    option.innerText=n;
+    rootSelect.appendChild(option);
+  });
 
   const typeSelect=document.getElementById("typeFilter");
   const searchBox=document.getElementById("searchBox");
@@ -193,7 +202,6 @@ function generateChordLibrary(){
     const typeVal = typeSelect.value.toLowerCase();
     const searchVal = searchBox.value.toLowerCase();
     
-    // Clean input, allow # and b
     const noteVal = noteFilter.value.toUpperCase().replace(/\s/g,''); 
     const notesToCheck = noteVal.split(",").filter(n => n.match(/^[A-G](#|B)?$/i));
 
