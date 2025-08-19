@@ -97,6 +97,23 @@
       default: return baseType;
     }
   }
+  // Build sus2/sus4 from a base chord (replace the 3rd with 2 or 4)
+function buildSuspendedChord(baseIntervals, susType) {
+  let intervals = [...baseIntervals];
+
+  // Remove the 3rd (either minor or major third)
+  intervals = intervals.filter(i => i !== 3 && i !== 4);
+
+  if (susType === "sus2") {
+    intervals.push(2); // add 2nd
+  } else if (susType === "sus4") {
+    intervals.push(5); // add 4th
+  }
+
+  return intervals.sort((a, b) => a - b);
+}
+
+  }
 
   function generateChordLibrary(){
     const chords=[];
@@ -115,6 +132,19 @@
         for(const addType in ADD_CHORDS){
           chords.push({name: root+getChordSuffix(baseType,addType), root: root, category:"Add", notes: buildChord(root,ADD_CHORDS[addType])});
         }
+        // Add sus2 and sus4 for each triad type
+        if (["Major", "Minor", "Diminished", "Augmented"].includes(type)) {
+          for (const susType of ["sus2", "sus4"]) {
+            const susIntervals = buildSuspendedChord(CHORD_FORMULAS[type], susType);
+            chords.push({
+              name: root + susType,  // e.g. "Csus2"
+              root: root,
+              category: "Suspended",
+              notes: susIntervals.map(interval => getNote(rootIndex, interval))
+    });
+  }
+}
+
       }
     }
     return chords;
