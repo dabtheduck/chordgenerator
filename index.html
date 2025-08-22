@@ -75,7 +75,7 @@
   const BASE_CHORDS = {"Major":[0,4,7],"Minor":[0,3,7],"Diminished":[0,3,6],"Augmented":[0,4,8]};
   const EXTENSIONS = {"7":[0,10],"maj7":[0,11],"9":[0,10,14],"maj9":[0,11,14],"11":[0,10,14,17],"13":[0,10,14,17,21]};
   const SUSPENDED_CHORDS = {"sus2":[0,2,7],"sus4":[0,5,7]};
-  const ADD_CHORDS = {"add2":[0,2,4,7],"add4":[0,4,5,7]};
+  const ADD_CHORDS = {"add2":[0,2],"add4":[0,5]};
 
   function selectNoteName(noteArray, chordName){
     if(chordName.includes('b') || chordName==="F" || chordName.startsWith("Db") || chordName.startsWith("Eb") || chordName.startsWith("Gb") || chordName.startsWith("Ab") || chordName.startsWith("Bb")){
