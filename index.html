@@ -139,17 +139,18 @@
             notes: buildChord(root, extIntervals)
           });
         }
-
-        // Suspended
-        for(const susType in SUSPENDED_CHORDS){
+        for (const susType in SUSPENDED_CHORDS) {
+          // Only allow sus2 and sus4 for Major chords
+          if ((susType === "sus2" || susType === "sus4") && baseType !== "Major") continue;
+        
           chords.push({
-            name: root+getChordSuffix(baseType,susType),
+            name: root + getChordSuffix(baseType, susType),
             root: root,
-            category:"Suspended",
-            notes: buildChord(root,SUSPENDED_CHORDS[susType])
+            category: "Suspended",
+            notes: buildChord(root, SUSPENDED_CHORDS[susType])
           });
         }
-
+        
         // Add chords
         for(const addType in ADD_CHORDS){
           chords.push({
